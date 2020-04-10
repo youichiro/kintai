@@ -1,0 +1,30 @@
+{
+  "name": "kintai",
+  "version": "1.0.0",
+  "description": "kintai manager",
+  "bin": {
+    "kintai": "src/main.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/youichiro/kintai.git"
+  },
+  "keywords": [
+    "kintai"
+  ],
+  "author": "youichiro <cinnamon416@gmail.com> (https://github.com/youichiro/)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/youichiro/kintai/issues"
+  },
+  "homepage": "https://github.com/youichiro/kintai#readme",
+  "dependencies": {
+    "enquirer": "^2.3.5",
+    "minimist": "^1.2.5",
+    "moment": "^2.24.0",
+    "sqlite3": "^4.1.1"
+  }
+}

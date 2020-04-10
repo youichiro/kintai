@@ -1,3 +1,4 @@
+#! /usr/bin/env node
 'use strict'
 const moment = require('moment')
 const minimist = require('minimist')
@@ -24,7 +25,7 @@ class Manager {
     this.time = this.moment.format('HH:mm')
   }
   async sleep() {
-    return new Promise(resolve => setTimeout(resolve, 100))
+    return new Promise(resolve => setTimeout(resolve, 50))
   }
   async info(kintai) {
     if (kintai) {
@@ -249,7 +250,3 @@ Commands:
   }
 }
 main()
-
-
-// TODO
-// リファクタリング
