@@ -28,28 +28,30 @@ class Manager {
     return new Promise(resolve => setTimeout(resolve, 50))
   }
   async info(kintai) {
-    if (kintai) {
-      console.log(this.dateHuman)
-      console.log(`勤務時間 ${kintai.startTime} ~ ${kintai.endTime}`)
-      const rests = await this.db.findRestAllByDate(this.date)
-      let restTime = 0
-      if (rests) {
-        for (let rest of rests) {
-          let diff = datetime.diffTime(rest.startTime, rest.endTime)
-          console.log(`休憩(${rest.number})  ${rest.startTime} ~ ${rest.endTime}  (${datetime.hoursToString(diff)})`)
-          restTime += diff
-        }
-      }
-      // 勤務時間 = kintaiDiff - restDiff
-      let workTime = datetime.diffTime(kintai.startTime, kintai.endTime)
-      if (workTime && restTime) {
-        workTime = workTime - restTime
-      }
-      workTime = datetime.hoursToString(workTime)
-      console.log(`実働時間 ${workTime}\n`)
-    } else {
+    if (!kintai) {
       console.log('出勤していません')
+      return
     }
+    console.log(this.dateHuman)
+    console.log(`勤務時間 ${kintai.startTime} ~ ${kintai.endTime}`)
+
+    // 休憩時間の計算
+    let restTime = 0
+    const rests = await this.db.findRestAllByDate(this.date)
+    if (rests) {
+      for (let rest of rests) {
+        let diff = datetime.diffTime(rest.startTime, rest.endTime)
+        console.log(`休憩(${rest.number})  ${rest.startTime} ~ ${rest.endTime}  (${datetime.hoursToString(diff)})`)
+        restTime += diff
+      }
+    }
+    // 実働時間の計算
+    let workTime = datetime.diffTime(kintai.startTime, kintai.endTime)
+    if (workTime && restTime) {
+      workTime = workTime - restTime
+    }
+    workTime = datetime.hoursToString(workTime)
+    console.log(`実働時間 ${workTime}\n`)
   }
   async start(time) {
     if (!time) time = this.time
@@ -93,9 +95,8 @@ class Manager {
   async reset() {
     const kintai = await this.db.findKintai(this.date)
     if (kintai) {
-      // delete kintai
+      // delete kintai & rests
       await this.db.deleteKintai(this.date)
-      // delete rests
       const rests = await this.db.findRestAllByDate(this.date)
       if (rests) {
         for (let rest of rests) { await this.db.deleteRest(rest.date, rest.number) }
@@ -195,15 +196,12 @@ class Manager {
 }
 
 
-function validInputTime(argv) {
-  if (argv['_'].length > 1) {
-    let input = argv['_'][1]
-    if (!datetime.validTime(input)) {
-      console.log('HH:mm のフォーマットで時間を指定してください (ex. 09:30)')
-      return
-    }
-    return input
+function isValidInputTime(input) {
+  if (!datetime.validTime(input)) {
+    console.log('HH:mm のフォーマットで時間を指定してください (ex. 09:30)')
+    return false
   }
+  return true
 }
 
 
@@ -211,7 +209,7 @@ async function main() {
   const usage = `Usage: kintai [command] [option]
   
 Commands:
-  start\t出勤する
+  start\t\t出勤する
   start [time]\t時間を指定して出勤する
   end\t\t退勤する
   end [time]\t時間を指定して退勤する
@@ -226,27 +224,44 @@ Commands:
   await manager.sleep()  // wait for finishing initdb
   const argv = minimist(process.argv.slice(2))
 
-  if (argv['_'][0] === 'help' || 'h' in argv) {
+  if (argv['_'].length <= 0) {
     console.log(usage)
+    return
   }
-  if (argv['_'][0] === 'start') {
-    const inputTime = validInputTime(argv)
-    await manager.start(inputTime || null)
-  } else if (argv['_'][0] === 'end') {
-    const inputTime = validInputTime(argv)
-    await manager.end(inputTime || null)
-  } else if (argv['_'][0] === 'show') {
-    await manager.show()
-  } else if (argv['_'][0] === 'reset') {
-    await manager.reset()
-  } else if (argv['_'][0] === 'edit') {
-    await manager.edit()
-  } else if (argv['_'][0] === 'rest') {
-    await manager.rest()
-  } else if (argv['_'][0] === 'return') {
-    await manager.return()
-  } else {
-    console.log(usage)
+
+  const command = argv['_'][0]
+  let inputTime = argv['_'][1] || null
+
+  switch (command) {
+    case 'start':
+      if (inputTime && !isValidInputTime(inputTime)) return
+      await manager.start(inputTime)
+      break
+    case 'end':
+      if (inputTime && !isValidInputTime(inputTime)) return
+      await manager.end(inputTime)
+      break
+    case 'rest':
+      if (inputTime && !isValidInputTime(inputTime)) return
+      await manager.rest(inputTime)
+      break
+    case 'return':
+      if (inputTime && !isValidInputTime(inputTime)) return
+      await manager.return(inputTime)
+      break
+    case 'show':
+      await manager.show()
+      break
+    case 'edit':
+      await manager.edit()
+      break
+    case 'reset':
+      await manager.reset()
+      break
+    case 'help':
+    default:
+      console.log(usage)
+      break
   }
 }
 main()
