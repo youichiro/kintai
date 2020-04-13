@@ -206,8 +206,8 @@ function isValidInputTime(input) {
 
 
 async function main() {
-  const usage = `Usage: kintai [command] [option]
-  
+  const usage = `Usage: kintai <command> [option]
+
 Commands:
   start\t\t出勤する
   start [time]\t時間を指定して出勤する
@@ -219,6 +219,7 @@ Commands:
   return [time]\t時間を指定して休憩から戻る
   edit\t\t勤怠情報を変更する
   show\t\t勤怠情報を表示する
+  reset\t\t勤怠情報を削除する
   `
   const manager = new Manager()
   await manager.sleep()  // wait for finishing initdb
