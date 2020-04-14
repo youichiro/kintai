@@ -1,4 +1,4 @@
-#! /usr/bin/env node
+#!/usr/bin/env node
 'use strict'
 const moment = require('moment')
 const minimist = require('minimist')
@@ -11,14 +11,18 @@ const Rest = sqlite.Rest
 const DB = sqlite.DB
 
 
-class Manager {
+class WorkTimeManager {
   constructor() {
-    // initdb
+    this.initDB()
+    this.setDatetime()
+  }
+  initDB() {
     this.db = new DB()
     this.db.init()
     this.db.createKintaiTable()
     this.db.createRestTable()
-    // datetime
+  }
+  setDatetime() {
     this.moment = moment()
     this.date = this.moment.format('YYYY-MM-DD')
     this.dateHuman = this.moment.format('YYYY/MM/DD')
@@ -27,7 +31,7 @@ class Manager {
   async sleep() {
     return new Promise(resolve => setTimeout(resolve, 50))
   }
-  async info(kintai) {
+  async showWorkTimes(kintai) {
     if (!kintai) {
       console.log('出勤していません')
       return
@@ -90,19 +94,20 @@ class Manager {
   }
   async show() {
     const kintai = await this.db.findKintai(this.date)
-    await this.info(kintai)
+    await this.showWorkTimes(kintai)
   }
   async reset() {
     const kintai = await this.db.findKintai(this.date)
-    if (kintai) {
-      // delete kintai & rests
-      await this.db.deleteKintai(this.date)
-      const rests = await this.db.findRestAllByDate(this.date)
-      if (rests) {
-        for (let rest of rests) { await this.db.deleteRest(rest.date, rest.number) }
+    if (!kintai) return
+    // delete kintai & rests
+    await this.db.deleteKintai(this.date)
+    const rests = await this.db.findRestAllByDate(this.date)
+    if (rests) {
+      for (let rest of rests) { 
+        await this.db.deleteRest(rest.date, rest.number)
       }
-      console.log(`${this.dateHuman} の勤怠情報を削除しました`)
     }
+    console.log(`${this.dateHuman} の勤怠情報を削除しました`)
   }
   async rest(time) {
     if (!time) time = this.time
@@ -156,7 +161,7 @@ class Manager {
     const rests = await this.db.findRestAllByDate(kintai.date)
     let rest, answer2
     console.log('[現在の勤怠情報]')
-    await this.info(kintai)
+    await this.showWorkTimes(kintai)
 
     const answer = await cli.selectCLI(['出勤時刻', '退勤時刻', '休憩時刻'], 'どの時刻を変更しますか')
     if (answer === '休憩時刻') {
@@ -174,12 +179,12 @@ class Manager {
       return
     }
     if (answer === '出勤時刻') {
-      kintai.startTime = input
       // update kintai.startTime
+      kintai.startTime = input
       await this.db.updateKintai(kintai)
     } else if (answer === '退勤時刻') {
-      kintai.endTime = input
       // update kintai.endTime
+      kintai.endTime = input
       await this.db.updateKintai(kintai)
     } else if (answer === '休憩時刻') {
       if (answer2 === '開始時刻') {
@@ -191,7 +196,7 @@ class Manager {
       await this.db.updateRest(rest)
     }
     console.log('\n[変更後の勤怠情報]')
-    this.info(kintai)
+    this.showWorkTimes(kintai)
   }
 }
 
@@ -221,7 +226,7 @@ Commands:
   show\t\t勤怠情報を表示する
   reset\t\t勤怠情報を削除する
   `
-  const manager = new Manager()
+  const manager = new WorkTimeManager()
   await manager.sleep()  // wait for finishing initdb
   const argv = minimist(process.argv.slice(2))
 
