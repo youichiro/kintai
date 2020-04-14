@@ -11,7 +11,7 @@ const Rest = sqlite.Rest
 const DB = sqlite.DB
 
 
-class WorkTimeManager {
+class KintaiTool {
   constructor() {
     this.initDB()
     this.setDatetime()
@@ -226,8 +226,8 @@ Commands:
   show\t\t勤怠情報を表示する
   reset\t\t勤怠情報を削除する
   `
-  const manager = new WorkTimeManager()
-  await manager.sleep()  // wait for finishing initdb
+  const tool = new KintaiTool()
+  await tool.sleep()  // wait for finishing initdb
   const argv = minimist(process.argv.slice(2))
 
   if (argv['_'].length <= 0) {
@@ -241,28 +241,28 @@ Commands:
   switch (command) {
     case 'start':
       if (inputTime && !isValidInputTime(inputTime)) return
-      await manager.start(inputTime)
+      await tool.start(inputTime)
       break
     case 'end':
       if (inputTime && !isValidInputTime(inputTime)) return
-      await manager.end(inputTime)
+      await tool.end(inputTime)
       break
     case 'rest':
       if (inputTime && !isValidInputTime(inputTime)) return
-      await manager.rest(inputTime)
+      await tool.rest(inputTime)
       break
     case 'return':
       if (inputTime && !isValidInputTime(inputTime)) return
-      await manager.return(inputTime)
+      await tool.return(inputTime)
       break
     case 'show':
-      await manager.show()
+      await tool.show()
       break
     case 'edit':
-      await manager.edit()
+      await tool.edit()
       break
     case 'reset':
-      await manager.reset()
+      await tool.reset()
       break
     case 'help':
     default:
