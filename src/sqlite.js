@@ -2,9 +2,8 @@
 const sqlite3 = require('sqlite3')
 const fs = require('fs')
 
-
 class Kintai {
-  constructor(date, startTime, endTime) {
+  constructor (date, startTime, endTime) {
     this.date = date
     this.startTime = startTime
     this.endTime = endTime
@@ -12,7 +11,7 @@ class Kintai {
 }
 
 class Rest {
-  constructor(date, number, startTime, endTime) {
+  constructor (date, number, startTime, endTime) {
     this.date = date
     this.number = number
     this.startTime = startTime
@@ -20,16 +19,16 @@ class Rest {
   }
 }
 
-
 class DB {
-  init() {
+  init () {
     const saveDir = process.env.HOME + '/.npm/kintai/'
     if (!fs.existsSync(saveDir)) {
-      fs.mkdirSync(saveDir, {recursive: true})
+      fs.mkdirSync(saveDir, { ecursive: true })
     }
     this.db = new sqlite3.Database(saveDir + 'kintai.sqlite3')
   }
-  async createKintaiTable() {
+
+  async createKintaiTable () {
     return new Promise((resolve, reject) => {
       try {
         this.db.run(
@@ -40,7 +39,8 @@ class DB {
       } catch (err) { return reject(err) }
     })
   }
-  async createRestTable() {
+
+  async createRestTable () {
     return new Promise((resolve, reject) => {
       try {
         this.db.run(
@@ -51,7 +51,8 @@ class DB {
       } catch (err) { return reject(err) }
     })
   }
-  async createKintai(kintai) {
+
+  async createKintai (kintai) {
     return new Promise((resolve, reject) => {
       const sql = 'INSERT INTO kintai (date, start_time, end_time) VALUES (?, ?, ?)'
       const values = [kintai.date, kintai.startTime, kintai.endTime]
@@ -61,7 +62,8 @@ class DB {
       })
     })
   }
-  async updateKintai(kintai) {
+
+  async updateKintai (kintai) {
     return new Promise((resolve, reject) => {
       const sql = 'UPDATE kintai SET start_time = ?, end_time = ? WHERE date = ?'
       const values = [kintai.startTime, kintai.endTime, kintai.date]
@@ -71,7 +73,8 @@ class DB {
       })
     })
   }
-  async findKintai(date) {
+
+  async findKintai (date) {
     return new Promise((resolve, reject) => {
       const sql = 'SELECT date, start_time, end_time FROM kintai WHERE date = ?'
       const values = [date]
@@ -82,7 +85,8 @@ class DB {
       })
     })
   }
-  async deleteKintai(date) {
+
+  async deleteKintai (date) {
     return new Promise((resolve, reject) => {
       this.db.run('DELETE FROM kintai WHERE date = ?', date, err => {
         if (err) return reject(err)
@@ -90,7 +94,8 @@ class DB {
       })
     })
   }
-  async createRest(rest) {
+
+  async createRest (rest) {
     return new Promise((resolve, reject) => {
       const sql = 'INSERT INTO rest (date, number, start_time, end_time) VALUES (?, ?, ?, ?)'
       const values = [rest.date, rest.number, rest.startTime, rest.endTime]
@@ -100,7 +105,8 @@ class DB {
       })
     })
   }
-  async updateRest(rest) {
+
+  async updateRest (rest) {
     return new Promise((resolve, reject) => {
       const sql = 'UPDATE rest SET start_time = ?, end_time = ? WHERE date = ? AND number = ?'
       const values = [rest.startTime, rest.endTime, rest.date, rest.number]
@@ -110,7 +116,8 @@ class DB {
       })
     })
   }
-  async findRest(date, number) {
+
+  async findRest (date, number) {
     return new Promise((resolve, reject) => {
       const sql = 'SELECT date, number, start_time, end_time FROM rest WHERE date = ? AND number = ?'
       const values = [date, number]
@@ -121,7 +128,8 @@ class DB {
       })
     })
   }
-  async findRestAllByDate(date) {
+
+  async findRestAllByDate (date) {
     return new Promise((resolve, reject) => {
       const sql = 'SELECT date, number, start_time, end_time FROM rest WHERE date = ? ORDER BY number'
       const values = [date]
@@ -132,7 +140,8 @@ class DB {
       })
     })
   }
-  async deleteRest(date, number) {
+
+  async deleteRest (date, number) {
     return new Promise((resolve, reject) => {
       this.db.run('DELETE FROM rest WHERE date = ? AND number = ?', [date, number], err => {
         if (err) return reject(err)
@@ -142,4 +151,4 @@ class DB {
   }
 }
 
-module.exports = {Kintai, Rest, DB}
+module.exports = { Kintai, Rest, DB }

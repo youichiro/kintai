@@ -1,6 +1,6 @@
 'use strict'
 
-function selectCLI(choices, message) {
+function selectCLI (choices, message) {
   return new Promise((resolve, reject) => {
     const { Select } = require('enquirer')
     const prompt = new Select({
@@ -14,7 +14,7 @@ function selectCLI(choices, message) {
   })
 }
 
-async function inputCLI(message) {
+async function inputCLI (message) {
   const { prompt } = require('enquirer')
   const response = await prompt({
     type: 'input',
@@ -24,4 +24,4 @@ async function inputCLI(message) {
   return response.text
 }
 
-module.exports = {selectCLI, inputCLI}
+module.exports = { selectCLI, inputCLI }

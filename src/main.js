@@ -10,28 +10,31 @@ const Kintai = sqlite.Kintai
 const Rest = sqlite.Rest
 const DB = sqlite.DB
 
-
 class KintaiTool {
-  constructor() {
+  constructor () {
     this.initDB()
     this.setDatetime()
   }
-  initDB() {
+
+  initDB () {
     this.db = new DB()
     this.db.init()
     this.db.createKintaiTable()
     this.db.createRestTable()
   }
-  setDatetime() {
+
+  setDatetime () {
     this.moment = moment()
     this.date = this.moment.format('YYYY-MM-DD')
     this.dateHuman = this.moment.format('YYYY/MM/DD')
     this.time = this.moment.format('HH:mm')
   }
-  async sleep() {
+
+  async sleep () {
     return new Promise(resolve => setTimeout(resolve, 50))
   }
-  async showWorkTimes(kintai) {
+
+  async showWorkTimes (kintai) {
     if (!kintai) {
       console.log('出勤していません')
       return
@@ -43,8 +46,8 @@ class KintaiTool {
     let restTime = 0
     const rests = await this.db.findRestAllByDate(this.date)
     if (rests) {
-      for (let rest of rests) {
-        let diff = datetime.diffTime(rest.startTime, rest.endTime)
+      for (const rest of rests) {
+        const diff = datetime.diffTime(rest.startTime, rest.endTime)
         console.log(`休憩(${rest.number})  ${rest.startTime} ~ ${rest.endTime}  (${datetime.hoursToString(diff)})`)
         restTime += diff
       }
@@ -57,7 +60,8 @@ class KintaiTool {
     workTime = datetime.hoursToString(workTime)
     console.log(`実働時間 ${workTime}\n`)
   }
-  async start(time) {
+
+  async start (time) {
     if (!time) time = this.time
     let kintai = await this.db.findKintai(this.date)
     if (kintai && kintai.startTime) {
@@ -69,7 +73,8 @@ class KintaiTool {
       console.log(this.dateHuman, kintai.startTime, '出勤しました')
     }
   }
-  async end(time) {
+
+  async end (time) {
     if (!time) time = this.time
     let kintai = await this.db.findKintai(this.date)
     if (!kintai) {
@@ -79,10 +84,10 @@ class KintaiTool {
     } else {
       const rests = await this.db.findRestAllByDate(this.date)
       if (rests) {
-        const last_rest = rests[rests.length - 1]
-        if (!last_rest.endTime) {
+        const lastRest = rests[rests.length - 1]
+        if (!lastRest.endTime) {
           console.log('休憩から戻っていません')
-          console.log(last_rest.startTime, 'に休憩に入りました')
+          console.log(lastRest.startTime, 'に休憩に入りました')
           return
         }
       }
@@ -92,24 +97,27 @@ class KintaiTool {
       console.log(this.dateHuman, kintai.endTime, '退勤しました')
     }
   }
-  async show() {
+
+  async show () {
     const kintai = await this.db.findKintai(this.date)
     await this.showWorkTimes(kintai)
   }
-  async reset() {
+
+  async reset () {
     const kintai = await this.db.findKintai(this.date)
     if (!kintai) return
     // delete kintai & rests
     await this.db.deleteKintai(this.date)
     const rests = await this.db.findRestAllByDate(this.date)
     if (rests) {
-      for (let rest of rests) { 
+      for (const rest of rests) {
         await this.db.deleteRest(rest.date, rest.number)
       }
     }
     console.log(`${this.dateHuman} の勤怠情報を削除しました`)
   }
-  async rest(time) {
+
+  async rest (time) {
     if (!time) time = this.time
     const kintai = await this.db.findKintai(this.date)
     if (!kintai) {
@@ -119,10 +127,10 @@ class KintaiTool {
     let number
     const rests = await this.db.findRestAllByDate(this.date)
     if (rests) {
-      const last_rest = rests[rests.length - 1]
-      if (!last_rest.endTime) {
+      const lastRest = rests[rests.length - 1]
+      if (!lastRest.endTime) {
         console.log('休憩から戻っていません')
-        console.log(last_rest.startTime, 'に休憩に入りました')
+        console.log(lastRest.startTime, 'に休憩に入りました')
         return
       }
       number = rests.length + 1
@@ -134,7 +142,8 @@ class KintaiTool {
     await this.db.createRest(rest)
     console.log(this.dateHuman, rest.startTime, '休憩に入りました')
   }
-  async return(time) {
+
+  async return (time) {
     if (!time) time = this.time
     const kintai = await this.db.findKintai(this.date)
     if (!kintai) {
@@ -146,18 +155,19 @@ class KintaiTool {
       console.log('休憩に入っていません')
       return
     }
-    let last_rest = rests[rests.length - 1]
-    if (last_rest.endTime) {
+    const lastRest = rests[rests.length - 1]
+    if (lastRest.endTime) {
       console.log('休憩に入っていません')
       return
     }
     // update rest
-    last_rest.endTime = time
-    await this.db.updateRest(last_rest)
-    console.log(this.dateHuman, last_rest.endTime, '休憩から戻りました')
+    lastRest.endTime = time
+    await this.db.updateRest(lastRest)
+    console.log(this.dateHuman, lastRest.endTime, '休憩から戻りました')
   }
-  async edit() {
-    let kintai = await this.db.findKintai(this.date)
+
+  async edit () {
+    const kintai = await this.db.findKintai(this.date)
     const rests = await this.db.findRestAllByDate(kintai.date)
     let rest, answer2
     console.log('[現在の勤怠情報]')
@@ -169,11 +179,11 @@ class KintaiTool {
         console.log('休憩がありません')
         return
       }
-      let number = await cli.selectCLI(rests.map(rest => rest.number.toString()), '番号を選んでください')
+      const number = await cli.selectCLI(rests.map(rest => rest.number.toString()), '番号を選んでください')
       rest = rests.filter(rest => rest.number === parseInt(number))[0]
       answer2 = await cli.selectCLI(['開始時刻', '終了時刻'], '開始時刻と終了時刻のどちらを変更しますか')
     }
-    let input = await cli.inputCLI('時刻を入力してください(HH:mm)')
+    const input = await cli.inputCLI('時刻を入力してください(HH:mm)')
     if (!datetime.validTime(input)) {
       console.log('HH:mm のフォーマットで時間を指定してください (ex. 09:30)')
       return
@@ -200,8 +210,7 @@ class KintaiTool {
   }
 }
 
-
-function isValidInputTime(input) {
+function isValidInputTime (input) {
   if (!datetime.validTime(input)) {
     console.log('HH:mm のフォーマットで時間を指定してください (ex. 09:30)')
     return false
@@ -209,8 +218,7 @@ function isValidInputTime(input) {
   return true
 }
 
-
-async function main() {
+async function main () {
   const usage = `Usage: kintai <command> [option]
 
 Commands:
@@ -227,16 +235,16 @@ Commands:
   reset\t\t勤怠情報を削除する
   `
   const tool = new KintaiTool()
-  await tool.sleep()  // wait for finishing initdb
+  await tool.sleep() // wait for finishing initdb
   const argv = minimist(process.argv.slice(2))
 
-  if (argv['_'].length <= 0) {
+  if (argv._.length <= 0) {
     console.log(usage)
     return
   }
 
-  const command = argv['_'][0]
-  let inputTime = argv['_'][1] || null
+  const command = argv._[0]
+  const inputTime = argv._[1] || null
 
   switch (command) {
     case 'start':
